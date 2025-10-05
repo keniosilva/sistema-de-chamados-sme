@@ -1,0 +1,16 @@
+[30-Sep-2025 21:40:03 UTC] Login bem-sucedido para katia, tipo: almoxarifado
+[30-Sep-2025 21:40:03 UTC] Redirecionando usuário katia com tipo almoxarifado para o dashboard correspondente
+[30-Sep-2025 21:40:47 UTC] Login bem-sucedido para assis, tipo: unidade_escolar
+[30-Sep-2025 21:40:47 UTC] Redirecionando usuário assis com tipo unidade_escolar para o dashboard correspondente
+[30-Sep-2025 22:47:48 UTC] Login bem-sucedido para aslana, tipo: secretaria
+[30-Sep-2025 22:47:48 UTC] Redirecionando usuário aslana com tipo secretaria para o dashboard correspondente
+[30-Sep-2025 22:48:03 UTC] Login bem-sucedido para assis, tipo: unidade_escolar
+[30-Sep-2025 22:48:03 UTC] Redirecionando usuário assis com tipo unidade_escolar para o dashboard correspondente
+[30-Sep-2025 22:57:34 UTC] Login bem-sucedido para aslana, tipo: secretaria
+[30-Sep-2025 22:57:34 UTC] Redirecionando usuário aslana com tipo secretaria para o dashboard correspondente
+[30-Sep-2025 23:02:22 UTC] Login bem-sucedido para aslana, tipo: secretaria
+[30-Sep-2025 23:02:22 UTC] Redirecionando usuário aslana com tipo secretaria para o dashboard correspondente
+[30-Sep-2025 23:05:30 UTC] PHP Parse error:  syntax error, unexpected identifier "almoxarifado" in C:\inetpub\wwwroot\manutencao\secretaria_dashboard.php on line 300
+[30-Sep-2025 23:05:44 UTC] Login bem-sucedido para aslana, tipo: secretaria
+[30-Sep-2025 23:05:44 UTC] Redirecionando usuário aslana com tipo secretaria para o dashboard correspondente
+[30-Sep-2025 23:05:44 UTC] PHP Parse error:  syntax error, unexpected identifier "almoxarifado" in C:\inetpub\wwwroot\manutencao\secretaria_dashboard.php on line 300
