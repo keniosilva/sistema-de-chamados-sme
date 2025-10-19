@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $telefone = trim($_POST['telefone'] ?? '');
         $email = trim($_POST['email'] ?? '');
         
-        if ($nome_unidade && $endereco) {
+        if ($nome_unidade) {
             // Verificar se nome já existe
             $stmt = $conn->prepare("SELECT id FROM unidades_escolares WHERE nome_unidade = ?");
             $stmt->bind_param("s", $nome_unidade);
@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
             $stmt->close();
         } else {
-            $erro = 'Por favor, preencha os campos obrigatórios.';
+            $erro = 'Por favor, preencha o campo Nome da Unidade.';
         }
     }
     
@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $telefone = trim($_POST['telefone'] ?? '');
         $email = trim($_POST['email'] ?? '');
         
-        if ($id && $nome_unidade && $endereco) {
+        if ($id && $nome_unidade) {
             $stmt = $conn->prepare("UPDATE unidades_escolares SET nome_unidade = ?, endereco = ?, telefone = ?, email = ? WHERE id = ?");
             $stmt->bind_param("ssssi", $nome_unidade, $endereco, $telefone, $email, $id);
             
@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
             $stmt->close();
         } else {
-            $erro = 'Por favor, preencha os campos obrigatórios.';
+            $erro = 'Por favor, preencha o campo Nome da Unidade.';
         }
     }
 }
@@ -377,7 +377,7 @@ $unidades = $stmt;
                 
                 <div class="form-group">
                     <label for="endereco">Endereço Completo:</label>
-                    <input type="text" id="endereco" name="endereco" required>
+                    <input type="text" id="endereco" name="endereco">
                 </div>
                 
                 <button type="submit" class="btn">Cadastrar</button>
@@ -458,7 +458,7 @@ $unidades = $stmt;
                 
                 <div class="form-group">
                     <label for="edit_endereco">Endereço Completo:</label>
-                    <input type="text" id="edit_endereco" name="endereco" required>
+                    <input type="text" id="edit_endereco" name="endereco">
                 </div>
                 
                 <button type="submit" class="btn">Salvar Alterações</button>

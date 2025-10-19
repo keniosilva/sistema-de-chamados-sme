@@ -19,7 +19,7 @@ $stmt->close();
 
 // Consultar usuários
 $stmt = $conn->prepare("
-    SELECT u.id, u.nome, u.nome_usuario, u.email, u.tipo_usuario, u.id_unidade_escolar, ue.nome_unidade
+    SELECT u.id, u.nome, u.nome_usuario, u.tipo_usuario, u.id_unidade_escolar, u.primeiro_login, ue.nome_unidade
     FROM usuarios u
     LEFT JOIN unidades_escolares ue ON u.id_unidade_escolar = ue.id
     ORDER BY u.nome
@@ -35,51 +35,55 @@ if ($_POST) {
     if ($acao == 'cadastrar') {
         $nome = trim($_POST['nome'] ?? '');
         $nome_usuario = trim($_POST['nome_usuario'] ?? '');
-        $email = trim($_POST['email'] ?? '');
         $senha = $_POST['senha'] ?? '';
+        $confirma_senha = $_POST['confirma_senha'] ?? '';
         $tipo_usuario = $_POST['tipo_usuario'] ?? '';
         $id_unidade_escolar = null;
 
-        if ($nome && $nome_usuario && $email && $senha && $tipo_usuario) {
-            $stmt = $conn->prepare("SELECT id FROM usuarios WHERE nome_usuario = ?");
-            $stmt->bind_param("s", $nome_usuario);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            
-            if ($result->num_rows == 0) {
-                $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
-                
-                if (in_array($tipo_usuario, ['unidade_escolar', 'secretaria', 'tecnico_geral', 'tecnico_informatica', 'casa_da_merenda', 'almoxarifado'])) {
-                    if ($tipo_usuario == 'unidade_escolar') {
-                        $id_unidade_escolar = $_POST['id_unidade_escolar'] ?? null;
-                    } else {
-                        $stmt_sme = $conn->prepare("SELECT id FROM unidades_escolares WHERE nome_unidade = ?");
-                        $nome_sme = 'SME';
-                        $stmt_sme->bind_param("s", $nome_sme);
-                        $stmt_sme->execute();
-                        $result_sme = $stmt_sme->get_result();
-                        $sme_data = $result_sme->fetch_assoc();
-                        $id_unidade_escolar = $sme_data['id'] ?? null;
-                        $stmt_sme->close();
-                    }
-                }
-                
-                $stmt = $conn->prepare("INSERT INTO usuarios (nome, nome_usuario, email, senha, tipo_usuario, id_unidade_escolar, primeiro_login) VALUES (?, ?, ?, ?, ?, ?, ?)");
-                $primeiro_login = 1;
-                $stmt->bind_param("sssssii", $nome, $nome_usuario, $email, $senha_hash, $tipo_usuario, $id_unidade_escolar, $primeiro_login);
-                
-                if ($stmt->execute()) {
-                    $mensagem = 'Usuário cadastrado com sucesso!';
-                    header("Location: gerenciar_usuarios.php?mensagem=" . urlencode($mensagem));
-                    exit();
-                } else {
-                    $erro = 'Erro ao cadastrar usuário: ' . $stmt->error;
-                    error_log("Erro ao cadastrar usuário: " . $stmt->error);
-                }
+        if ($nome && $nome_usuario && $senha && $confirma_senha && $tipo_usuario) {
+            if ($senha !== $confirma_senha) {
+                $erro = 'As senhas não coincidem.';
             } else {
-                $erro = 'Já existe um usuário com este nome de usuário.';
+                $stmt = $conn->prepare("SELECT id FROM usuarios WHERE nome_usuario = ?");
+                $stmt->bind_param("s", $nome_usuario);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                
+                if ($result->num_rows == 0) {
+                    $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
+                    
+                    if (in_array($tipo_usuario, ['unidade_escolar', 'secretaria', 'tecnico_geral', 'tecnico_informatica', 'casa_da_merenda', 'almoxarifado'])) {
+                        if ($tipo_usuario == 'unidade_escolar') {
+                            $id_unidade_escolar = $_POST['id_unidade_escolar'] ?? null;
+                        } else {
+                            $stmt_sme = $conn->prepare("SELECT id FROM unidades_escolares WHERE nome_unidade = ?");
+                            $nome_sme = 'SME';
+                            $stmt_sme->bind_param("s", $nome_sme);
+                            $stmt_sme->execute();
+                            $result_sme = $stmt_sme->get_result();
+                            $sme_data = $result_sme->fetch_assoc();
+                            $id_unidade_escolar = $sme_data['id'] ?? null;
+                            $stmt_sme->close();
+                        }
+                    }
+                    
+                    $stmt = $conn->prepare("INSERT INTO usuarios (nome, nome_usuario, senha, tipo_usuario, id_unidade_escolar, primeiro_login) VALUES (?, ?, ?, ?, ?, ?)");
+                    $primeiro_login = 1;
+                    $stmt->bind_param("ssssii", $nome, $nome_usuario, $senha_hash, $tipo_usuario, $id_unidade_escolar, $primeiro_login);
+                    
+                    if ($stmt->execute()) {
+                        $mensagem = 'Usuário cadastrado com sucesso!';
+                        header("Location: gerenciar_usuarios.php?mensagem=" . urlencode($mensagem));
+                        exit();
+                    } else {
+                        $erro = 'Erro ao cadastrar usuário: ' . $stmt->error;
+                        error_log("Erro ao cadastrar usuário: " . $stmt->error);
+                    }
+                } else {
+                    $erro = 'Já existe um usuário com este nome de usuário.';
+                }
+                $stmt->close();
             }
-            $stmt->close();
         } else {
             $erro = 'Por favor, preencha todos os campos obrigatórios.';
         }
@@ -87,57 +91,61 @@ if ($_POST) {
         $id = $_POST['id'];
         $nome = trim($_POST['nome'] ?? '');
         $nome_usuario = trim($_POST['nome_usuario'] ?? '');
-        $email = trim($_POST['email'] ?? '');
         $senha = $_POST['senha'] ?? '';
+        $confirma_senha = $_POST['confirma_senha'] ?? '';
         $tipo_usuario = $_POST['tipo_usuario'] ?? '';
         $id_unidade_escolar = null;
         
-        if ($nome && $nome_usuario && $email && $tipo_usuario) {
-            $stmt = $conn->prepare("SELECT id FROM usuarios WHERE nome_usuario = ? AND id != ?");
-            $stmt->bind_param("si", $nome_usuario, $id);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            
-            if ($result->num_rows == 0) {
-                if (in_array($tipo_usuario, ['unidade_escolar', 'secretaria', 'tecnico_geral', 'tecnico_informatica', 'casa_da_merenda', 'almoxarifado'])) {
-                    if ($tipo_usuario == 'unidade_escolar') {
-                        $id_unidade_escolar = $_POST['id_unidade_escolar'] ?? null;
+        if ($nome && $nome_usuario && $tipo_usuario) {
+            if ($senha && $senha !== $confirma_senha) {
+                $erro = 'As senhas não coincidem.';
+            } else {
+                $stmt = $conn->prepare("SELECT id FROM usuarios WHERE nome_usuario = ? AND id != ?");
+                $stmt->bind_param("si", $nome_usuario, $id);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                
+                if ($result->num_rows == 0) {
+                    if (in_array($tipo_usuario, ['unidade_escolar', 'secretaria', 'tecnico_geral', 'tecnico_informatica', 'casa_da_merenda', 'almoxarifado'])) {
+                        if ($tipo_usuario == 'unidade_escolar') {
+                            $id_unidade_escolar = $_POST['id_unidade_escolar'] ?? null;
+                        } else {
+                            $stmt_sme = $conn->prepare("SELECT id FROM unidades_escolares WHERE nome_unidade = ?");
+                            $nome_sme = 'SME';
+                            $stmt_sme->bind_param("s", $nome_sme);
+                            $stmt_sme->execute();
+                            $result_sme = $stmt_sme->get_result();
+                            $sme_data = $result_sme->fetch_assoc();
+                            $id_unidade_escolar = $sme_data['id'] ?? null;
+                            $stmt_sme->close();
+                        }
                     } else {
-                        $stmt_sme = $conn->prepare("SELECT id FROM unidades_escolares WHERE nome_unidade = ?");
-                        $nome_sme = 'SME';
-                        $stmt_sme->bind_param("s", $nome_sme);
-                        $stmt_sme->execute();
-                        $result_sme = $stmt_sme->get_result();
-                        $sme_data = $result_sme->fetch_assoc();
-                        $id_unidade_escolar = $sme_data['id'] ?? null;
-                        $stmt_sme->close();
+                        $id_unidade_escolar = null;
+                    }
+
+                    if ($senha) {
+                        $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
+                        $stmt = $conn->prepare("UPDATE usuarios SET nome = ?, nome_usuario = ?, senha = ?, tipo_usuario = ?, id_unidade_escolar = ?, primeiro_login = ? WHERE id = ?");
+                        $primeiro_login = 1;
+                        $stmt->bind_param("ssssiii", $nome, $nome_usuario, $senha_hash, $tipo_usuario, $id_unidade_escolar, $primeiro_login, $id);
+                    } else {
+                        $stmt = $conn->prepare("UPDATE usuarios SET nome = ?, nome_usuario = ?, tipo_usuario = ?, id_unidade_escolar = ? WHERE id = ?");
+                        $stmt->bind_param("sssii", $nome, $nome_usuario, $tipo_usuario, $id_unidade_escolar, $id);
+                    }
+
+                    if ($stmt->execute()) {
+                        $mensagem = 'Usuário atualizado com sucesso!';
+                        header("Location: gerenciar_usuarios.php?mensagem=" . urlencode($mensagem));
+                        exit();
+                    } else {
+                        $erro = 'Erro ao atualizar usuário: ' . $stmt->error;
+                        error_log("Erro ao atualizar usuário: " . $stmt->error);
                     }
                 } else {
-                    $id_unidade_escolar = null;
+                    $erro = 'Já existe outro usuário com este nome de usuário.';
                 }
-
-                if ($senha) {
-                    $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
-                    $stmt = $conn->prepare("UPDATE usuarios SET nome = ?, nome_usuario = ?, email = ?, senha = ?, tipo_usuario = ?, id_unidade_escolar = ?, primeiro_login = ? WHERE id = ?");
-                    $primeiro_login = 1;
-                    $stmt->bind_param("sssssiii", $nome, $nome_usuario, $email, $senha_hash, $tipo_usuario, $id_unidade_escolar, $primeiro_login, $id);
-                } else {
-                    $stmt = $conn->prepare("UPDATE usuarios SET nome = ?, nome_usuario = ?, email = ?, tipo_usuario = ?, id_unidade_escolar = ? WHERE id = ?");
-                    $stmt->bind_param("ssssii", $nome, $nome_usuario, $email, $tipo_usuario, $id_unidade_escolar, $id);
-                }
-
-                if ($stmt->execute()) {
-                    $mensagem = 'Usuário atualizado com sucesso!';
-                    header("Location: gerenciar_usuarios.php?mensagem=" . urlencode($mensagem));
-                    exit();
-                } else {
-                    $erro = 'Erro ao atualizar usuário: ' . $stmt->error;
-                    error_log("Erro ao atualizar usuário: " . $stmt->error);
-                }
-            } else {
-                $erro = 'Já existe outro usuário com este nome de usuário.';
+                $stmt->close();
             }
-            $stmt->close();
         } else {
             $erro = 'Por favor, preencha todos os campos obrigatórios.';
         }
@@ -163,7 +171,7 @@ if ($_POST) {
         $stmt = $conn->prepare("UPDATE usuarios SET senha = ?, primeiro_login = ? WHERE id = ?");
         $stmt->bind_param("sii", $senha_hash, $primeiro_login, $id);
         if ($stmt->execute()) {
-            $mensagem = 'Senha resetada com sucesso para "mudar123". O usuário precisará alterá-la no próximo login.';
+            $mensagem = 'Senha resetada com sucesso para "admin123". O usuário precisará alterá-la no próximo login.';
             header("Location: gerenciar_usuarios.php?mensagem=" . urlencode($mensagem));
             exit();
         } else {
@@ -338,12 +346,28 @@ if ($_POST) {
             border-radius: 8px;
             margin-bottom: 1.5rem;
         }
+        
+        .primeiro-login-sim {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        
+        .primeiro-login-nao {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            display: inline-block;
+        }
     </style>
 </head>
 <body>
      <div class="header">
         <div class="header-content">
-            <h1>Gerenciar Unidades Escolares</h1>
+            <h1>Gerenciar Usuários</h1>
             <div class="nav-links">
                 <a href="admin_dashboard.php">Voltar ao Dashboard</a>
                 <a href="gerenciar_unidades.php">Gerenciar Unidades</a>
@@ -382,13 +406,13 @@ if ($_POST) {
                 </div>
                 
                 <div class="mb-3">
-                    <label for="email" class="form-label">E-mail</label>
-                    <input type="email" class="form-control" id="email" name="email" required>
+                    <label for="senha" class="form-label">Senha</label>
+                    <input type="password" class="form-control" id="senha" name="senha" required>
                 </div>
                 
                 <div class="mb-3">
-                    <label for="senha" class="form-label">Senha</label>
-                    <input type="password" class="form-control" id="senha" name="senha" required>
+                    <label for="confirma_senha" class="form-label">Confirmar Senha</label>
+                    <input type="password" class="form-control" id="confirma_senha" name="confirma_senha" required>
                 </div>
                 
                 <div class="mb-3">
@@ -428,9 +452,9 @@ if ($_POST) {
                             <th>ID</th>
                             <th>Nome</th>
                             <th>Nome de Usuário</th>
-                            <th>E-mail</th>
                             <th>Tipo</th>
                             <th>Unidade Escolar</th>
+                            <th>Primeiro Login Pendente</th>
                             <th>Ações</th>
                         </tr>
                     </thead>
@@ -440,9 +464,13 @@ if ($_POST) {
                                 <td><?php echo htmlspecialchars($usuario['id']); ?></td>
                                 <td><?php echo htmlspecialchars($usuario['nome']); ?></td>
                                 <td><?php echo htmlspecialchars($usuario['nome_usuario'] ?? ''); ?></td>
-                                <td><?php echo htmlspecialchars($usuario['email'] ?? ''); ?></td>
                                 <td><?php echo htmlspecialchars($usuario['tipo_usuario']); ?></td>
                                 <td><?php echo htmlspecialchars($usuario['nome_unidade'] ?? 'N/A'); ?></td>
+                                <td>
+                                    <span class="<?php echo $usuario['primeiro_login'] ? 'primeiro-login-sim' : 'primeiro-login-nao'; ?>">
+                                        <?php echo $usuario['primeiro_login'] ? 'Sim' : 'Não'; ?>
+                                    </span>
+                                </td>
                                 <td class="actions">
                                     <button class="btn btn-primary btn-sm" onclick='editarUsuario(<?php echo json_encode($usuario, JSON_HEX_APOS | JSON_HEX_QUOT); ?>)'>
                                         <i class="bi bi-pencil"></i> Editar
@@ -485,12 +513,12 @@ if ($_POST) {
                         <input type="text" class="form-control" id="edit_nome_usuario" name="nome_usuario" required>
                     </div>
                     <div class="mb-3">
-                        <label for="edit_email" class="form-label">E-mail</label>
-                        <input type="email" class="form-control" id="edit_email" name="email" required>
-                    </div>
-                    <div class="mb-3">
                         <label for="edit_senha" class="form-label">Nova Senha (opcional)</label>
                         <input type="password" class="form-control" id="edit_senha" name="senha">
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_confirma_senha" class="form-label">Confirmar Nova Senha</label>
+                        <input type="password" class="form-control" id="edit_confirma_senha" name="confirma_senha">
                     </div>
                     <div class="mb-3">
                         <label for="edit_tipo_usuario" class="form-label">Tipo de Usuário</label>
@@ -581,11 +609,11 @@ if ($_POST) {
         }
 
         function editarUsuario(usuario) {
-            // Garantir que os valores sejam strings, tratando null
             document.getElementById('edit_id').value = usuario.id || '';
             document.getElementById('edit_nome').value = usuario.nome || '';
             document.getElementById('edit_nome_usuario').value = usuario.nome_usuario || '';
-            document.getElementById('edit_email').value = usuario.email || '';
+            document.getElementById('edit_senha').value = '';
+            document.getElementById('edit_confirma_senha').value = '';
             document.getElementById('edit_tipo_usuario').value = usuario.tipo_usuario || '';
             document.getElementById('edit_id_unidade_escolar').value = usuario.id_unidade_escolar || '';
             
@@ -597,6 +625,7 @@ if ($_POST) {
         function fecharModal() {
             document.getElementById('modalEdicao').style.display = 'none';
             document.getElementById('edit_senha').value = '';
+            document.getElementById('edit_confirma_senha').value = '';
         }
         
         window.onclick = function(event) {
