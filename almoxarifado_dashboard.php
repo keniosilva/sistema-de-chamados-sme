@@ -86,13 +86,12 @@ $sql_chamados = "
     SELECT c.id, c.tipo_manutencao, c.setor_destino, c.descricao, c.status, c.data_abertura,
            COALESCE(ue.nome_unidade, 'Secretaria de Educação') as origem,
            u.nome as nome_usuario, ut.nome as nome_tecnico,
-           c.almoxarifado_confirmacao_entrega, c.confirmacao_entrega,
-           o.numero_oficio, o.tipo_oficio
+           c.almoxarifado_confirmacao_entrega, c.confirmacao_entrega
     FROM chamados c
     LEFT JOIN unidades_escolares ue ON c.id_unidade_escolar = ue.id
     LEFT JOIN usuarios u ON c.id_usuario_abertura = u.id
     LEFT JOIN usuarios ut ON c.id_tecnico_responsavel = ut.id
-    LEFT JOIN oficios o ON c.id = o.id_chamado AND o.tipo_oficio = 'entrega'
+
     $whereClause
     ORDER BY c.data_abertura DESC
     LIMIT ? OFFSET ?
@@ -256,7 +255,7 @@ if ($stmt_30dias) {
                                         <th scope="col">Descrição</th>
                                         <th scope="col">Status</th>
                                         <th scope="col">Data Abertura</th>
-                                        <th scope="col">Entrega/Ofício</th>
+
                                         <th scope="col">Ações</th>
                                     </tr>
                                 </thead>
@@ -276,24 +275,7 @@ if ($stmt_30dias) {
                                                     <?= ucfirst(str_replace('_', ' ', htmlspecialchars($chamado['status']))) ?>
                                                 </span></td>
                                                 <td><?= date('d/m/Y H:i', strtotime($chamado['data_abertura'])) ?></td>
-                                                <td>
-                                                    <?php 
-                                                    if ($chamado["status"] == "concluido" || $chamado["status"] == "aguardando_recebimento"):
-                                                        if (($chamado["confirmacao_recebimento_unidade"] ?? 0) == 1):
-                                                            echo '<span class="badge badge-entrega-confirmada">Receb. Confirmado</span>';
-                                                        elseif (($chamado["almoxarifado_confirmacao_entrega"] ?? 0) == 1 && !empty($chamado["numero_oficio"])):
-                                                            echo '<span class="badge badge-entrega-pendente">Aguardando Unidade</span>';
-                                                            echo '<br><a href="visualizar_oficio.php?id=' . $chamado['id'] . '" target="_blank" class="btn btn-sm btn-outline-info mt-1">Ver Ofício</a>';
-                                                        else:
-                                                            echo '<span class="badge bg-secondary">Aguardando Ofício</span>';
-                                                        endif;
-                                                    elseif ($chamado["status"] == "em_andamento" && empty($chamado["numero_oficio"])):
-                                                        echo '<a href="gerar_oficio_entrega.php?id=' . $chamado['id'] . '" class="btn btn-sm btn-primary">Gerar Ofício</a>';
-                                                    else:
-                                                        echo '-';
-                                                    endif;
-                                                    ?>
-                                                </td>
+
                                                 <td>
                                                     <a href="ver_chamado.php?id=<?= $chamado['id'] ?>" class="btn btn-primary btn-sm">
                                                         <i class="bi bi-eye"></i> Ver
@@ -308,7 +290,7 @@ if ($stmt_30dias) {
                                         <?php endforeach; ?>
                                     <?php else: ?>
                                         <tr>
-                                            <td colspan="9" class="text-center">Nenhum chamado encontrado.</td>
+                                            <td colspan="8" class="text-center">Nenhum chamado encontrado.</td>
                                         </tr>
                                     <?php endif; ?>
                                 </tbody>
