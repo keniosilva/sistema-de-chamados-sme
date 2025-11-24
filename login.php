@@ -108,6 +108,8 @@ $conn->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Chamados - Login</title>
+    <!-- Font Awesome (ícone do olho) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -135,17 +137,43 @@ $conn->close();
         
         .header {
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
         
         .header h1 {
             color: #333;
-            margin-bottom: 0.5rem;
+            margin: 0.5rem 0;
+            font-size: 1.5rem;
         }
         
         .header p {
             color: #666;
             font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        /* Campanha Novembro Azul */
+        .novembro-azul {
+            text-align: center;
+            margin: 1rem 0;
+            padding: 0.75rem;
+            background: #e6f2ff;
+            border-radius: 8px;
+            border: 1px solid #a3d4ff;
+        }
+
+        .novembro-azul img {
+            max-width: 80px;
+            height: auto;
+            margin-bottom: 0.5rem;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        }
+
+        .novembro-azul p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: #0066cc;
+            font-weight: 600;
         }
         
         .form-group {
@@ -158,8 +186,9 @@ $conn->close();
             color: #333;
             font-weight: 500;
         }
-        
-        .form-group input {
+
+        /* Campo de usuário (sem olho) */
+        .form-group input[type="text"] {
             width: 100%;
             padding: 0.75rem;
             border: 2px solid #e1e5e9;
@@ -167,10 +196,57 @@ $conn->close();
             font-size: 1rem;
             transition: border-color 0.3s;
         }
-        
-        .form-group input:focus {
+
+        .form-group input[type="text"]:focus {
             outline: none;
             border-color: #667eea;
+        }
+
+        /* Wrapper do campo senha */
+        .password-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .password-wrapper input {
+            width: 100%;
+            padding: 0.75rem 2.5rem 0.75rem 0.75rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+            flex: 1;
+        }
+
+        .password-wrapper input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        /* Botão do olho – CENTRALIZADO */
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 1.1rem;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .password-toggle:hover {
+            color: #333;
+        }
+
+        .password-toggle i {
+            pointer-events: none;
         }
         
         .btn {
@@ -209,9 +285,15 @@ $conn->close();
 <body>
     <div class="login-container">
         <div class="header">
-            <img src="images/logo.png" alt="Prefeitura de Bayeux" class="agosto-lilas-img">
+            <img src="images/logo.png" alt="Prefeitura de Bayeux" style="max-height: 120px; margin-bottom: 0.5rem;">
             <h1>Sistema de Chamados</h1>
             <p>Prefeitura Municipal de Bayeux<br>Secretaria Municipal de Educação</p>
+        </div>
+
+        <!-- Campanha Novembro Azul -->
+        <div class="novembro-azul">
+            <img src="images/azul.png" alt="Novembro Azul">
+            <p>Novembro Azul: Cuidar da saúde também é coisa de homem.</p>
         </div>
         
         <?php if (!empty($erro)): ?>
@@ -219,14 +301,23 @@ $conn->close();
         <?php endif; ?>
         
         <form method="POST" action="">
+            <!-- Campo Usuário -->
             <div class="form-group">
                 <label for="nome_usuario">Nome de Usuário:</label>
-                <input type="text" id="nome_usuario" name="nome_usuario" value="<?php echo isset($_POST['nome_usuario']) ? htmlspecialchars($_POST['nome_usuario'], ENT_QUOTES, 'UTF-8') : ''; ?>" required>
+                <input type="text" id="nome_usuario" name="nome_usuario" 
+                       value="<?php echo isset($_POST['nome_usuario']) ? htmlspecialchars($_POST['nome_usuario'], ENT_QUOTES, 'UTF-8') : ''; ?>" 
+                       required>
             </div>
             
+            <!-- Campo Senha com Olho CENTRALIZADO -->
             <div class="form-group">
                 <label for="senha">Senha:</label>
-                <input type="password" id="senha" name="senha" required>
+                <div class="password-wrapper">
+                    <input type="password" id="senha" name="senha" required>
+                    <button type="button" class="password-toggle" onclick="togglePassword()" aria-label="Mostrar/ocultar senha">
+                        <i class="fas fa-eye" id="eye-icon"></i>
+                    </button>
+                </div>
             </div>
             
             <button type="submit" class="btn">Entrar</button>
@@ -236,5 +327,23 @@ $conn->close();
             <p>© 2025 Prefeitura Municipal de Bayeux</p>
         </div>
     </div>
+
+    <!-- JavaScript para alternar visibilidade da senha -->
+    <script>
+        function togglePassword() {
+            const passwordField = document.getElementById('senha');
+            const eyeIcon = document.getElementById('eye-icon');
+            
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                eyeIcon.classList.remove('fa-eye');
+                eyeIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordField.type = 'password';
+                eyeIcon.classList.remove('fa-eye-slash');
+                eyeIcon.classList.add('fa-eye');
+            }
+        }
+    </script>
 </body>
 </html>

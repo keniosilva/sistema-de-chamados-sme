@@ -15,6 +15,8 @@ $dadosChamados = [];
 $totalChamados = 0;
 $stats = ['aberto' => 0, 'em_andamento' => 0, 'concluido' => 0, 'cancelado' => 0];
 $statsType = ['geral' => 0, 'informatica' => 0, 'almoxarifado' => 0, 'casa_da_merenda' => 0];
+// Nova variável para estatísticas por unidade
+$statsUnit = [];
 
 // Filtro por status e tipo
 $filtroStatus = $_GET['status'] ?? 'todos';
@@ -53,6 +55,23 @@ if ($stmt) {
 } else {
     error_log("Erro ao preparar consulta de estatísticas por tipo: " . $conn->error);
     $mensagemErro = "Erro ao carregar estatísticas por tipo.";
+}
+
+// Consulta de estatísticas por unidade
+$stmt = $conn->prepare("SELECT ue.nome_unidade, COUNT(*) as total FROM chamados c LEFT JOIN unidades_escolares ue ON c.id_unidade_escolar = ue.id GROUP BY ue.id ORDER BY total DESC LIMIT 5");
+if ($stmt) {
+    $stmt->execute();
+    $result = $stmt->get_result();
+    while ($row = $result->fetch_assoc()) {
+        $statsUnit[] = [
+            'nome_unidade' => $row['nome_unidade'] ?: 'Não especificado',
+            'total' => $row['total']
+        ];
+    }
+    $stmt->close();
+} else {
+    error_log("Erro ao preparar consulta de estatísticas por unidade: " . $conn->error);
+    $mensagemErro = "Erro ao carregar estatísticas por unidade.";
 }
 
 // Dados para gráfico de linha (chamados por dia nos últimos 30 dias)
@@ -240,14 +259,17 @@ $totalPaginas = ceil($totalChamados / $itensPorPagina);
                         </div>
 
                         <div class="row mb-4">
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <canvas id="pieChart" height="200"></canvas>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <canvas id="barChart" height="200"></canvas>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <canvas id="lineChart" height="200"></canvas>
+                            </div>
+                            <div class="col-md-3">
+                                <canvas id="unitChart" height="200"></canvas>
                             </div>
                         </div>
 
@@ -403,7 +425,10 @@ $totalPaginas = ceil($totalChamados / $itensPorPagina);
             },
             options: { 
                 responsive: true,
-                plugins: { legend: { position: 'top' }, tooltip: { enabled: true } }
+                plugins: { 
+                    legend: { position: 'top' }, 
+                    tooltip: { enabled: true }
+                }
             }
         });
 
@@ -422,6 +447,26 @@ $totalPaginas = ceil($totalChamados / $itensPorPagina);
             options: { 
                 responsive: true,
                 plugins: { legend: { position: 'top' }, tooltip: { enabled: true } }
+            }
+        });
+
+        // Gráfico de Barras (Unidades com Mais Chamados)
+        new Chart(document.getElementById('unitChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: <?= json_encode(array_column($statsUnit, 'nome_unidade')) ?>,
+                datasets: [{
+                    label: 'Chamados por Unidade',
+                    data: <?= json_encode(array_column($statsUnit, 'total')) ?>,
+                    backgroundColor: ['#007bff', '#28a745', '#dc3545', '#ffc107', '#17a2b8']
+                }]
+            },
+            options: { 
+                responsive: true,
+                plugins: { 
+                    legend: { position: 'top' }, 
+                    tooltip: { enabled: true }
+                }
             }
         });
     </script>

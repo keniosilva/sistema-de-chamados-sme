@@ -338,10 +338,10 @@ $returnPage = [
                             <span class="info-label">Nome:</span>
                             <span class="info-value"><?php echo htmlspecialchars($chamado['nome_usuario_abertura']); ?></span>
                         </div>
-                        <div class="info-item">
+                        <!--<div class="info-item">
                             <span class="info-label">Email:</span>
-                            <span class="info-value"><?php echo htmlspecialchars($chamado['email_usuario_abertura']); ?></span>
-                        </div>
+                            <span class="info-value"><?php //echo htmlspecialchars($chamado['email_usuario_abertura']); ?></span>
+                        </div>-->
                     </div>
                     
                     <div class="info-section">
