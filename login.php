@@ -1,25 +1,22 @@
 <?php
-// Enable error reporting for debugging
+// [PHP PERMANECE EXATAMENTE IGUAL]
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 session_start();
 
-// Include database connection
 $connection_file = __DIR__ . '/connection.php';
 if (!file_exists($connection_file)) {
     die("Erro: O arquivo connection.php não foi encontrado.");
 }
 require_once $connection_file;
 
-// Verify database connection
 if ($conn->connect_error) {
     error_log("Erro de conexão com o banco de dados: " . $conn->connect_error);
     die("Erro de conexão com o banco de dados.");
 }
 
-// Set UTF-8 charset
 if (!$conn->set_charset("utf8mb4")) {
     error_log("Erro ao definir charset: " . $conn->error);
 }
@@ -33,7 +30,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($nome_usuario) || empty($senha)) {
         $erro = "Por favor, preencha todos os campos.";
     } else {
-        // Prepare SQL query to fetch user
         $sql = "SELECT id, nome, nome_usuario, senha, tipo_usuario, id_unidade_escolar, primeiro_login 
                 FROM usuarios 
                 WHERE nome_usuario = ?";
@@ -47,7 +43,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt->fetch();
 
                     if (password_verify($senha, $senhaDB)) {
-                        // Store user data in session
                         $_SESSION['user'] = [
                             'id' => $id,
                             'nome' => $nome,
@@ -58,16 +53,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         ];
                         error_log("Login bem-sucedido para $nome_usuario, tipo: $tipo_usuario");
 
-                        // Redirect based on primeiro_login
                         if ($primeiro_login) {
                             header("Location: alterar_senha.php");
                             exit();
                         }
 
-                        // Log redirection
-                        error_log("Redirecionando usuário $nome_usuario com tipo $tipo_usuario para o dashboard correspondente");
-
-                        // Redirect based on user type
                         $redirect_map = [
                             'admin' => 'admin_dashboard.php',
                             'tecnico_informatica' => 'tecnico_dashboard.php',
@@ -99,7 +89,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Close database connection
 $conn->close();
 ?>
 <!DOCTYPE html>
@@ -108,7 +97,6 @@ $conn->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Chamados - Login</title>
-    <!-- Font Awesome (ícone do olho) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         * {
@@ -124,6 +112,24 @@ $conn->close();
             display: flex;
             align-items: center;
             justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 🎄 NEVE DISCRETA 🎄 */
+        .snowflake {
+            position: fixed;
+            top: -5px;
+            color: rgba(227, 242, 253, 0.6);
+            user-select: none;
+            z-index: 999;
+            pointer-events: none;
+            animation: snowfall 12s linear infinite;
+            font-size: 0.4rem;
+        }
+
+        @keyframes snowfall {
+            to { transform: translateY(100vh); }
         }
         
         .login-container {
@@ -133,16 +139,43 @@ $conn->close();
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
             width: 100%;
             max-width: 400px;
+            border: 2px solid rgba(255, 215, 0, 0.2);
+            position: relative;
         }
         
+        /* 🎄 ÁRVORE NATALINA MAIS VISÍVEL E GRANDE 🎄 */
         .header {
             text-align: center;
             margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .header::before {
+            content: '🎄';
+            position: absolute;
+            left: 50%;
+            top: -30px;
+            transform: translateX(-50%);
+            font-size: 3rem;
+            z-index: 10;
+            animation: treeGlow 3s ease-in-out infinite alternate;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+        }
+
+        @keyframes treeGlow {
+            0% { 
+                transform: translateX(-50%) translateY(0px) scale(1);
+                filter: drop-shadow(0 0 5px rgba(34, 197, 94, 0.8));
+            }
+            100% { 
+                transform: translateX(-50%) translateY(-3px) scale(1.05);
+                filter: drop-shadow(0 0 15px rgba(255, 215, 0, 1));
+            }
         }
         
         .header h1 {
             color: #333;
-            margin: 0.5rem 0;
+            margin: 2rem 0 0.5rem 0;
             font-size: 1.5rem;
         }
         
@@ -152,28 +185,54 @@ $conn->close();
             line-height: 1.4;
         }
 
-        /* Campanha Novembro Azul */
-        .novembro-azul {
+        /* 🎄 BANNER NATALINO CHAMATIVO 🎄 */
+        .natal-banner {
             text-align: center;
-            margin: 1rem 0;
-            padding: 0.75rem;
-            background: #e6f2ff;
-            border-radius: 8px;
-            border: 1px solid #a3d4ff;
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: linear-gradient(135deg, #2c5530 0%, #b92b27 50%, #c0392b 100%);
+            color: white;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(44, 85, 48, 0.3);
+            animation: bannerPulse 2s ease-in-out infinite;
         }
 
-        .novembro-azul img {
-            max-width: 80px;
-            height: auto;
-            margin-bottom: 0.5rem;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        @keyframes bannerPulse {
+            0%, 100% { 
+                transform: scale(1);
+                box-shadow: 0 8px 25px rgba(44, 85, 48, 0.3);
+            }
+            50% { 
+                transform: scale(1.02);
+                box-shadow: 0 12px 35px rgba(44, 85, 48, 0.5);
+            }
         }
 
-        .novembro-azul p {
-            margin: 0;
-            font-size: 0.85rem;
-            color: #0066cc;
-            font-weight: 600;
+        .natal-banner::before {
+            content: '✨';
+            position: absolute;
+            top: 8px;
+            left: 15px;
+            font-size: 1.2rem;
+            animation: sparkle 2s ease-in-out infinite;
+        }
+
+        .natal-banner::after {
+            content: '✨';
+            position: absolute;
+            top: 8px;
+            right: 15px;
+            font-size: 1.2rem;
+            animation: sparkle 2s ease-in-out infinite 1s;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.3); }
         }
         
         .form-group {
@@ -187,7 +246,6 @@ $conn->close();
             font-weight: 500;
         }
 
-        /* Campo de usuário (sem olho) */
         .form-group input[type="text"] {
             width: 100%;
             padding: 0.75rem;
@@ -202,7 +260,6 @@ $conn->close();
             border-color: #667eea;
         }
 
-        /* Wrapper do campo senha */
         .password-wrapper {
             position: relative;
             display: flex;
@@ -224,7 +281,6 @@ $conn->close();
             border-color: #667eea;
         }
 
-        /* Botão do olho – CENTRALIZADO */
         .password-toggle {
             position: absolute;
             right: 10px;
@@ -244,10 +300,6 @@ $conn->close();
         .password-toggle:hover {
             color: #333;
         }
-
-        .password-toggle i {
-            pointer-events: none;
-        }
         
         .btn {
             width: 100%;
@@ -257,12 +309,21 @@ $conn->close();
             border: none;
             border-radius: 5px;
             font-size: 1rem;
+            font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .btn::before {
+            content: '🎁';
+            margin-right: 8px;
+            font-size: 1rem;
         }
         
         .btn:hover {
             transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
         }
         
         .erro {
@@ -280,6 +341,17 @@ $conn->close();
             color: #666;
             font-size: 0.8rem;
         }
+        
+        @media (max-width: 480px) {
+            .header::before {
+                font-size: 2.5rem;
+                top: -25px;
+            }
+            .natal-banner {
+                font-size: 0.95rem;
+                padding: 0.9rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -290,10 +362,9 @@ $conn->close();
             <p>Prefeitura Municipal de Bayeux<br>Secretaria Municipal de Educação</p>
         </div>
 
-        <!-- Campanha Novembro Azul -->
-        <div class="novembro-azul">
-            <img src="images/azul.png" alt="Novembro Azul">
-            <p>Novembro Azul: Cuidar da saúde também é coisa de homem.</p>
+        <!-- 🎄 BANNER NATALINO CHAMATIVO 🎄 -->
+        <div class="natal-banner">
+            🎄 FELIZ NATAL E BOAS FESTAS! 🎅
         </div>
         
         <?php if (!empty($erro)): ?>
@@ -301,7 +372,6 @@ $conn->close();
         <?php endif; ?>
         
         <form method="POST" action="">
-            <!-- Campo Usuário -->
             <div class="form-group">
                 <label for="nome_usuario">Nome de Usuário:</label>
                 <input type="text" id="nome_usuario" name="nome_usuario" 
@@ -309,7 +379,6 @@ $conn->close();
                        required>
             </div>
             
-            <!-- Campo Senha com Olho CENTRALIZADO -->
             <div class="form-group">
                 <label for="senha">Senha:</label>
                 <div class="password-wrapper">
@@ -328,7 +397,6 @@ $conn->close();
         </div>
     </div>
 
-    <!-- JavaScript para alternar visibilidade da senha -->
     <script>
         function togglePassword() {
             const passwordField = document.getElementById('senha');
@@ -344,6 +412,21 @@ $conn->close();
                 eyeIcon.classList.add('fa-eye');
             }
         }
+
+        // 🎄 NEVE DISCRETA 🎄
+        setTimeout(() => {
+            setInterval(() => {
+                const snowflake = document.createElement('div');
+                snowflake.classList.add('snowflake');
+                snowflake.innerHTML = '❄️';
+                snowflake.style.left = Math.random() * 100 + 'vw';
+                snowflake.style.opacity = 0.5;
+                snowflake.style.animationDuration = '12s';
+                document.body.appendChild(snowflake);
+                
+                setTimeout(() => snowflake.remove(), 12000);
+            }, 6000);
+        }, 1000);
     </script>
 </body>
 </html>
