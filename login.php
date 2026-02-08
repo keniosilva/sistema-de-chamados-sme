@@ -1,5 +1,4 @@
 <?php
-// [PHP PERMANECE EXATAMENTE IGUAL]
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -23,7 +22,7 @@ if (!$conn->set_charset("utf8mb4")) {
 
 $erro = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['ajax'])) {
     $nome_usuario = trim($_POST['nome_usuario'] ?? '');
     $senha = $_POST['senha'] ?? '';
 
@@ -96,7 +95,7 @@ $conn->close();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Chamados - Login</title>
+    <title>Sistema de Chamados - Login de Carnaval</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         * {
@@ -107,7 +106,7 @@ $conn->close();
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #9b59b6 0%, #e91e63 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -116,255 +115,277 @@ $conn->close();
             overflow: hidden;
         }
 
-        /* 🎄 NEVE DISCRETA 🎄 */
-        .snowflake {
-            position: fixed;
-            top: -5px;
-            color: rgba(227, 242, 253, 0.6);
-            user-select: none;
-            z-index: 999;
-            pointer-events: none;
-            animation: snowfall 12s linear infinite;
-            font-size: 0.4rem;
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            top: -10px;
+            z-index: 0;
+            animation: fall linear infinite;
         }
 
-        @keyframes snowfall {
-            to { transform: translateY(100vh); }
+        @keyframes fall {
+            to { transform: translateY(100vh) rotate(360deg); }
         }
         
         .login-container {
             background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
             width: 100%;
-            max-width: 400px;
-            border: 2px solid rgba(255, 215, 0, 0.2);
+            max-width: 420px;
+            border: 2px solid #f1c40f;
             position: relative;
+            z-index: 10;
         }
         
-        /* 🎄 ÁRVORE NATALINA MAIS VISÍVEL E GRANDE 🎄 */
         .header {
             text-align: center;
-            margin-bottom: 1.5rem;
-            position: relative;
+            margin-bottom: 2rem;
         }
 
-        .header::before {
-            content: '🎄';
-            position: absolute;
-            left: 50%;
-            top: -30px;
-            transform: translateX(-50%);
-            font-size: 3rem;
-            z-index: 10;
-            animation: treeGlow 3s ease-in-out infinite alternate;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+        .header img {
+            max-height: 110px;
+            margin-bottom: 1rem;
         }
 
-        @keyframes treeGlow {
-            0% { 
-                transform: translateX(-50%) translateY(0px) scale(1);
-                filter: drop-shadow(0 0 5px rgba(34, 197, 94, 0.8));
-            }
-            100% { 
-                transform: translateX(-50%) translateY(-3px) scale(1.05);
-                filter: drop-shadow(0 0 15px rgba(255, 215, 0, 1));
-            }
-        }
-        
         .header h1 {
-            color: #333;
-            margin: 2rem 0 0.5rem 0;
-            font-size: 1.5rem;
+            color: #2d3748;
+            font-size: 1.6rem;
+            margin-bottom: 0.5rem;
         }
         
         .header p {
-            color: #666;
-            font-size: 0.9rem;
-            line-height: 1.4;
+            color: #4a5568;
+            font-size: 0.95rem;
         }
 
-        /* 🎄 BANNER NATALINO CHAMATIVO 🎄 */
-        .natal-banner {
-            text-align: center;
-            margin: 1.5rem 0;
-            padding: 1rem;
-            background: linear-gradient(135deg, #2c5530 0%, #b92b27 50%, #c0392b 100%);
-            color: white;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 700;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 8px 25px rgba(44, 85, 48, 0.3);
-            animation: bannerPulse 2s ease-in-out infinite;
-        }
-
-        @keyframes bannerPulse {
-            0%, 100% { 
-                transform: scale(1);
-                box-shadow: 0 8px 25px rgba(44, 85, 48, 0.3);
-            }
-            50% { 
-                transform: scale(1.02);
-                box-shadow: 0 12px 35px rgba(44, 85, 48, 0.5);
-            }
-        }
-
-        .natal-banner::before {
-            content: '✨';
-            position: absolute;
-            top: 8px;
-            left: 15px;
-            font-size: 1.2rem;
-            animation: sparkle 2s ease-in-out infinite;
-        }
-
-        .natal-banner::after {
-            content: '✨';
-            position: absolute;
-            top: 8px;
-            right: 15px;
-            font-size: 1.2rem;
-            animation: sparkle 2s ease-in-out infinite 1s;
-        }
-
-        @keyframes sparkle {
-            0%, 100% { opacity: 0.6; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.3); }
-        }
-        
         .form-group {
-            margin-bottom: 1rem;
+            margin-bottom: 1.4rem;
         }
         
         .form-group label {
             display: block;
-            margin-bottom: 0.5rem;
-            color: #333;
+            margin-bottom: 0.6rem;
+            color: #2d3748;
             font-weight: 500;
+            font-size: 0.95rem;
         }
 
-        .form-group input[type="text"] {
+        .form-group input[type="text"],
+        .form-group input[type="password"] {
             width: 100%;
-            padding: 0.75rem;
-            border: 2px solid #e1e5e9;
-            border-radius: 5px;
+            padding: 0.9rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
             font-size: 1rem;
-            transition: border-color 0.3s;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease;
         }
 
-        .form-group input[type="text"]:focus {
+        .form-group input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #e91e63;
+            box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.15);
         }
 
         .password-wrapper {
             position: relative;
-            display: flex;
-            align-items: center;
         }
 
         .password-wrapper input {
-            width: 100%;
-            padding: 0.75rem 2.5rem 0.75rem 0.75rem;
-            border: 2px solid #e1e5e9;
-            border-radius: 5px;
-            font-size: 1rem;
-            transition: border-color 0.3s;
-            flex: 1;
-        }
-
-        .password-wrapper input:focus {
-            outline: none;
-            border-color: #667eea;
+            padding-right: 3.2rem;
         }
 
         .password-toggle {
             position: absolute;
-            right: 10px;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
             background: none;
             border: none;
-            color: #666;
+            color: #718096;
             cursor: pointer;
             font-size: 1.1rem;
-            width: 30px;
-            height: 30px;
+            width: 36px;
+            height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 10;
         }
 
         .password-toggle:hover {
-            color: #333;
+            color: #2d3748;
         }
         
         .btn {
             width: 100%;
-            padding: 0.75rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1rem;
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
             color: white;
             border: none;
-            border-radius: 5px;
-            font-size: 1rem;
+            border-radius: 6px;
+            font-size: 1.05rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            position: relative;
         }
 
-        .btn::before {
-            content: '🎁';
-            margin-right: 8px;
-            font-size: 1rem;
-        }
-        
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 10px 25px rgba(46, 204, 113, 0.35);
+        }
+
+        .btn-secondary {
+            background: #718096;
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #4a5568;
+            box-shadow: 0 10px 25px rgba(113, 128, 150, 0.35);
         }
         
         .erro {
-            background: #fee;
-            color: #c33;
-            padding: 0.75rem;
-            border-radius: 5px;
-            margin-bottom: 1rem;
-            border-left: 4px solid #c33;
+            background: #fff5f5;
+            color: #c53030;
+            padding: 0.9rem;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid #c53030;
+            font-size: 0.95rem;
+        }
+
+        .forgot-password {
+            text-align: right;
+            margin-top: -10px;
+            margin-bottom: 20px;
+        }
+
+        .forgot-password a {
+            color: #e91e63;
+            font-size: 0.85rem;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .forgot-password a:hover {
+            text-decoration: underline;
         }
         
         .footer {
             text-align: center;
             margin-top: 2rem;
-            color: #666;
-            font-size: 0.8rem;
+            color: #718096;
+            font-size: 0.85rem;
         }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .modal-header {
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .modal-header h2 {
+            font-size: 1.3rem;
+            color: #2d3748;
+        }
+
+        .unidade-info {
+            background: #f7fafc;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+            border-left: 4px solid #f1c40f;
+            display: none;
+        }
+
+        .unidade-info p {
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .unidade-info strong {
+            display: block;
+            color: #2d3748;
+            margin-top: 4px;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.5rem;
+            color: #a0aec0;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close-modal:hover {
+            color: #4a5568;
+        }
+
+        <?php
+        for ($i = 0; $i < 30; $i++) {
+            $left = rand(0, 100);
+            $duration = rand(3, 7);
+            $delay = rand(0, 5);
+            $colors = ['#f1c40f', '#2ecc71', '#e91e63', '#3498db', '#fff'];
+            $color = $colors[array_rand($colors)];
+            echo ".confetti:nth-child($i) { 
+                left: $left%; 
+                animation-duration: {$duration}s; 
+                animation-delay: -{$delay}s; 
+                background-color: $color;
+            }\n";
+        }
+        ?>
         
         @media (max-width: 480px) {
-            .header::before {
-                font-size: 2.5rem;
-                top: -25px;
+            .login-container {
+                padding: 1.8rem;
             }
-            .natal-banner {
-                font-size: 0.95rem;
-                padding: 0.9rem;
+            .header h1 {
+                font-size: 1.45rem;
             }
         }
     </style>
 </head>
 <body>
+    <?php for ($i = 0; $i < 30; $i++): ?>
+        <div class="confetti"></div>
+    <?php endfor; ?>
+
     <div class="login-container">
         <div class="header">
-            <img src="images/logo.png" alt="Prefeitura de Bayeux" style="max-height: 120px; margin-bottom: 0.5rem;">
+            <img src="images/logo.png" alt="Prefeitura de Bayeux">
             <h1>Sistema de Chamados</h1>
             <p>Prefeitura Municipal de Bayeux<br>Secretaria Municipal de Educação</p>
-        </div>
-
-        <!-- 🎄 BANNER NATALINO CHAMATIVO 🎄 -->
-        <div class="natal-banner">
-            🎄 FELIZ NATAL E BOAS FESTAS! 🎅
+            <div style="font-size: 2rem; margin-top: 10px;">🎭✨</div>
         </div>
         
         <?php if (!empty($erro)): ?>
@@ -388,12 +409,43 @@ $conn->close();
                     </button>
                 </div>
             </div>
+
+            <div class="forgot-password">
+                <a href="javascript:void(0)" onclick="openResetModal()">Esqueceu a senha?</a>
+            </div>
             
             <button type="submit" class="btn">Entrar</button>
         </form>
         
         <div class="footer">
-            <p>© 2025 Prefeitura Municipal de Bayeux</p>
+            <p>© 2026 Prefeitura Municipal de Bayeux</p>
+        </div>
+    </div>
+
+    <!-- Modal Reset Senha -->
+    <div id="resetModal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeResetModal()">&times;</span>
+            <div class="modal-header">
+                <h2>Recuperar Senha</h2>
+                <p style="font-size: 0.85rem; color: #718096;">Insira seu usuário para resetar a senha</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="reset_usuario">Nome de Usuário:</label>
+                <input type="text" id="reset_usuario" placeholder="Digite seu usuário">
+            </div>
+
+            <div id="unidadeDisplay" class="unidade-info">
+                <p>Unidade Escolar / Setor:</p>
+                <strong id="unidadeNome"></strong>
+            </div>
+
+            <div id="resetMessage" style="margin-top: 15px; font-size: 0.9rem; display: none;"></div>
+
+            <button type="button" id="btnBuscar" class="btn" onclick="buscarUnidade()" style="margin-top: 10px;">Verificar Usuário</button>
+            <button type="button" id="btnResetar" class="btn" onclick="resetarSenha()" style="margin-top: 10px; display: none; background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);">Resetar para Senha Padrão</button>
+            <button type="button" class="btn btn-secondary" onclick="closeResetModal()" style="margin-top: 10px;">Cancelar</button>
         </div>
     </div>
 
@@ -413,20 +465,127 @@ $conn->close();
             }
         }
 
-        // 🎄 NEVE DISCRETA 🎄
-        setTimeout(() => {
-            setInterval(() => {
-                const snowflake = document.createElement('div');
-                snowflake.classList.add('snowflake');
-                snowflake.innerHTML = '❄️';
-                snowflake.style.left = Math.random() * 100 + 'vw';
-                snowflake.style.opacity = 0.5;
-                snowflake.style.animationDuration = '12s';
-                document.body.appendChild(snowflake);
+        function openResetModal() {
+            document.getElementById('resetModal').style.display = 'flex';
+            document.getElementById('reset_usuario').value = '';
+            document.getElementById('unidadeDisplay').style.display = 'none';
+            document.getElementById('btnResetar').style.display = 'none';
+            document.getElementById('btnBuscar').style.display = 'block';
+            document.getElementById('resetMessage').style.display = 'none';
+        }
+
+        function closeResetModal() {
+            document.getElementById('resetModal').style.display = 'none';
+        }
+
+        function buscarUnidade() {
+            const usuario = document.getElementById('reset_usuario').value.trim();
+            const msgDiv = document.getElementById('resetMessage');
+            const btnBuscar = document.getElementById('btnBuscar');
+            
+            if (!usuario) {
+                alert('Por favor, digite o nome de usuário.');
+                return;
+            }
+
+            btnBuscar.disabled = true;
+            btnBuscar.textContent = 'Buscando...';
+
+            const formData = new FormData();
+            formData.append('action', 'buscar_unidade');
+            formData.append('nome_usuario', usuario);
+
+            fetch('reset_senha_handler.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro na rede: ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                btnBuscar.disabled = false;
+                btnBuscar.textContent = 'Verificar Usuário';
                 
-                setTimeout(() => snowflake.remove(), 12000);
-            }, 6000);
-        }, 1000);
+                if (data.success) {
+                    document.getElementById('unidadeNome').textContent = data.unidade;
+                    document.getElementById('unidadeDisplay').style.display = 'block';
+                    document.getElementById('btnBuscar').style.display = 'none';
+                    document.getElementById('btnResetar').style.display = 'block';
+                    msgDiv.style.display = 'none';
+                } else {
+                    msgDiv.textContent = data.message;
+                    msgDiv.style.color = '#c53030';
+                    msgDiv.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                btnBuscar.disabled = false;
+                btnBuscar.textContent = 'Verificar Usuário';
+                console.error('Erro:', error);
+                alert('Erro ao processar a solicitação. Verifique se o arquivo reset_senha_handler.php está no mesmo diretório.');
+            });
+        }
+
+        function resetarSenha() {
+            const usuario = document.getElementById('reset_usuario').value.trim();
+            const msgDiv = document.getElementById('resetMessage');
+            const btnResetar = document.getElementById('btnResetar');
+
+            if (!confirm('Deseja realmente resetar a senha para o padrão "admin123"?')) {
+                return;
+            }
+
+            btnResetar.disabled = true;
+            btnResetar.textContent = 'Processando...';
+
+            const formData = new FormData();
+            formData.append('action', 'resetar_senha');
+            formData.append('nome_usuario', usuario);
+
+            fetch('reset_senha_handler.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro na rede: ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                btnResetar.disabled = false;
+                btnResetar.textContent = 'Resetar para Senha Padrão';
+                
+                msgDiv.textContent = data.message;
+                msgDiv.style.display = 'block';
+                
+                if (data.success) {
+                    msgDiv.style.color = '#27ae60';
+                    document.getElementById('btnResetar').style.display = 'none';
+                    setTimeout(() => {
+                        closeResetModal();
+                    }, 3000);
+                } else {
+                    msgDiv.style.color = '#c53030';
+                }
+            })
+            .catch(error => {
+                btnResetar.disabled = false;
+                btnResetar.textContent = 'Resetar para Senha Padrão';
+                console.error('Erro:', error);
+                alert('Erro ao resetar a senha.');
+            });
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('resetModal');
+            if (event.target == modal) {
+                closeResetModal();
+            }
+        }
     </script>
 </body>
 </html>
